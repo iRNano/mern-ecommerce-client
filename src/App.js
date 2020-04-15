@@ -3,6 +3,7 @@ import Catalog from './components/Catalog';
 import TopNav from './components/layouts/Navbar';
 import Auth from './components/Auth'
 import Product from './components/Product'
+import Cart from './components/Cart'
 import {BrowserRouter as Router, Switch, Route} from 'react-router-dom'
 import AddProduct from './components/forms/AddProduct'
 import Register from './components/forms/Register';
@@ -30,7 +31,7 @@ const App = () => {
     if(token){
       let decoded = jwt_decode(token)
       let now = new Date()
-      if(decoded.exp === now.getTime()){
+      if(decoded.exp <= now.getTime()){
         localStorage.clear()
       }
     }
@@ -48,6 +49,11 @@ const App = () => {
           <Route path="/login">
             <Login />
           </Route>
+          <Route path="/cart">
+            {user && token && user.isAdmin === false ?
+              <Cart /> : <Auth />  
+            }
+          </Route>
           <Route path="/add-product">
             {user && token && user.isAdmin ? 
               <AddProduct /> : <Auth />
@@ -57,7 +63,7 @@ const App = () => {
             <Product user={user} token={token}/>
           </Route>
           <Route exact path="/">
-            <Catalog products={products}/>
+            <Catalog products={products} user={user} token={token}/>
           </Route>
         </Switch>
       </Router>

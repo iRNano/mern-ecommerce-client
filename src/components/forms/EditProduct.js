@@ -1,8 +1,10 @@
-import React, {useState, useEffect} from "react"
-import Swal from "sweetalert2"
+import React, {useEffect,useState} from "react"
+import Swal from 'sweetalert2'
 
-const AddProduct = () => {
-    const [formData, setFormData] = useState({})
+
+const EditProduct = ({product, setEditing}) => {
+    
+    const [formData, setFormData] = useState(product)
     const [categories, setCategories] = useState([])
     useEffect(()=>{
         fetch("http://localhost:4000/categories", {
@@ -35,15 +37,17 @@ const AddProduct = () => {
     console.log(formData)
     const onSubmitHandler = (e) => {
         e.preventDefault()
-        const product = new FormData()
-        product.append('name', formData.name)
-        product.append('description', formData.description)
-        product.append('categoryId', formData.categoryId)
-        product.append('price', formData.price)
-        product.append('image', formData.image)
-        fetch("http://localhost:4000/products", {
-            method: "POST",
-            body: product,
+        const updatedProduct = new FormData()
+        updatedProduct.append('name', formData.name)
+        updatedProduct.append('description', formData.description)
+        updatedProduct.append('categoryId', formData.categoryId)
+        updatedProduct.append('price', formData.price)
+        if(typeof formData.image === 'object'){
+            updatedProduct.append('image', formData.image)
+        }
+        fetch("http://localhost:4000/products/"+formData._id, {
+            method: "PUT",
+            body: updatedProduct,
             headers: {
                 "x-auth-token": localStorage.getItem("token")
             }
@@ -72,32 +76,36 @@ const AddProduct = () => {
         <form className="mx-auto col-sm-6" onSubmit={onSubmitHandler} encType="multipart/form-data">
             <div className="form-group">
                 <label>Name</label>
-                <input type="text" name="name" className="form-control" onChange={onChangeHandler}/>
+                <input type="text" name="name" className="form-control" onChange={onChangeHandler} value={formData.name}/>
             </div>
             <div className="form-group">
                 <label>Description</label>
-                <input type="text" name="description" className="form-control" onChange={onChangeHandler}/>
+                <input type="text" name="description" className="form-control" onChange={onChangeHandler} value={formData.description}/>
             </div>
             <div className="form-group">
                 <label>Price</label>
-                <input type="number" name="price" className="form-control" onChange={onChangeHandler}/>
+                <input type="number" name="price" className="form-control" onChange={onChangeHandler} value={formData.price}/>
             </div>
             <div className="form-group">
                 <label>Image</label>
-                <input type="file" name="image" accept="image/*"className="form-control" onChange={handleFile}/>
+                <img src={"http://localhost:4000/"+formData.image} className="img-fluid"/>
+                <input type="file" name="image" accept="image/*"className="form-control" onChange={handleFile} />
             </div>
             <div className="form-group">
                 <label>Category</label>
-                <select className="form-control mb-3" name="categoryId" onChange={onChangeHandler}>
-                    <option disabled selected>Select Category</option>
+                <select className="form-control mb-3" name="categoryId" onChange={onChangeHandler} >
+                    
                     {categories.map(category=> (
-                        <option key={category._id} value={category._id} >{category.name}</option>
+                        category._id === formData.categoryId? 
+                        <option selected key={category._id}value={category._id} selected> {category.name}</option> :
+                        <option key={category._id} value={category._id}>{category.name}</option>
                     ))}
                 </select>
             </div>
-            <button className="btn btn-primary">Add</button>
-        </form>
+            <button className="btn btn-primary">Edit</button>
+            <button type="button" className="btn btn-secondary" onClick={()=>setEditing(false)}>Cancel</button>
+        </form> 
     )
 }
 
-export default AddProduct;
+export default EditProduct
