@@ -34,7 +34,12 @@ const Catalog = ({products, user, token}) => {
                 {user && token && user.isAdmin === false ?
                     <div className="card-footer">
                         <input type="number" min="1" name="quantity" onChange={(e)=> setQuantity(e.target.value)}/>
-                        <Button onClick={(e)=>addToCartHandler(e, product)}>Add to Cart</Button>
+                        <Button onClick={(e)=>{
+                            addToCartHandler(e, product)
+                            e.target.previousElementSibling.value = ""
+                        }}>
+                            Add to Cart
+                            </Button>
                     </div>:
                     null
                 }

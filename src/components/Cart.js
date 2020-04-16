@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react"
+import Swal from "sweetalert2"
+import Stripe from "./forms/Stripe"
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([])
-    const [editing, setEditing] = useState(false)
-    const [cartItem, setCartItem] = useState({})
+    // const [editing, setEditing] = useState(false)
+    // const [cartItem, setCartItem] = useState({})
     let total;
     useEffect( () => {
         setCartItems(JSON.parse(localStorage.getItem('cartItems')))
-    }, [cartItem])
+    }, [])
 
     if(cartItems.length){
         let subTotals = cartItems.map(item => parseInt(item.price)* parseInt(item.quantity))
@@ -30,28 +32,61 @@ const Cart = () => {
         window.location.href = "/cart"
     }
 
-    const onChangeHandler = (e) => {    
-        setCartItem({...cartItem, quantity: e.target.value})
+    // const onChangeHandler = (e) => {    
+    //     setCartItem({...cartItem, quantity: e.target.value})
         
-        let updatedCartItems = cartItems.find(item => {
-            if(item._id === cartItem._id){
-                item.quantity = cartItem.quantity
-                localStorage.setItem('cartItems', JSON.stringify(cartItems))
+    //     let updatedCartItems = cartItems.find(item => {
+    //         if(item._id === cartItem._id){
+    //             item.quantity = cartItem.quantity
+    //             localStorage.setItem('cartItems', JSON.stringify(cartItems))
                 
+    //         }
+    //     })
+    // }
+
+    const checkout = () => {
+        let orders = JSON.parse(localStorage.getItem('cartItems'))
+        fetch("http://localhost:4000/transactions", {
+            method: "POST",
+            body: JSON.stringify({orders, total}),
+            headers: {
+                "Content-Type": "application/json",
+                "x-auth-token": localStorage.getItem('token')
             }
         })
+        .then(res=>res.json())
+        .then(data=>{
+            Swal.fire({
+                'icon': 'success',
+                'title': data.message
+            })
+            localStorage.setItem('cartItems', JSON.stringify([]))
+            setCartItems(JSON.parse(localStorage.getItem('cartItems')))
+        })
+    }
+    const quantityHandler = (quantity, productId) => {
+        // alert("Quantity: "+ quantity +" - "+ productId)
+        let itemToUpdate = cartItems.find(item => item._id === productId)
+        itemToUpdate.quantity = parseInt(quantity)
+        console.log(itemToUpdate.quantity)
+        let updatedCart = cartItems.map(item=>{
+            return item._id === productId ? {...itemToUpdate} : item
+        })
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart))
+        setCartItems(JSON.parse(localStorage.getItem('cartItems')))
+
     }
 
-    console.log(cartItem)
-    const editHandler = (itemId) => {
-        setEditing(!editing)
-        let cartItems = JSON.parse(localStorage.getItem('cartItems'))
-        cartItems.find(item => {
-            if(item._id === itemId){
-                setCartItem(item)
-            }
-        })
-    }
+    // console.log(cartItem)
+    // const editHandler = (itemId) => {
+    //     // setEditing(!editing)
+    //     // let cartItems = JSON.parse(localStorage.getItem('cartItems'))
+    //     // cartItems.find(item => {
+    //     //     if(item._id === itemId){
+    //     //         setCartItem(item)
+    //     //     }
+    //     // })
+    // }
 
     return(
         <div className="col-md-10 mx-auto">
@@ -74,19 +109,12 @@ const Cart = () => {
                                 <td>{item.name}</td>
                                 <td>{item.price}</td>
                                 <td>     
-                                    {editing && cartItem._id === item._id? 
-                                    <input onChange={onChangeHandler} value={cartItem.quantity}/> :
-                                    item.quantity                                                                   
-                                    }
+                                    <input type="number" onChange={(e)=> quantityHandler(e.target.value, item._id)} value={item.quantity}/> 
                                 </td>
+                                <td>{item.quantity * item.price}</td>
                                 <td>
-                                    {editing && cartItem.id === item._id?
-                                        cartItem.quantity * item.price : item.quantity * item.price
-                                    }</td>
-                                <td>
-                                    <button className="btn btn-warning mr-2" onClick={()=> editHandler(item._id)}>Edit</button>
+                                    {/* <button className="btn btn-warning mr-2" >Edit</button> */}
                                     <button className="btn btn-danger" onClick={()=> deleteCartItem(item._id)}>Delete</button>
-
                                 </td>
                                 
                             </tr>
@@ -99,8 +127,8 @@ const Cart = () => {
                         <tr>
                             <td colSpan="5" className="text-center">
                                 <button className="btn btn-danger mr-3" onClick={()=> emptyCart()}>Empty Cart</button>
-                                <button className="btn btn-success mr-3">Checkout COD</button>
-                                <button className="btn btn-primary">Stripe</button>
+                                <button className="btn btn-success mr-3" onClick={checkout}>Checkout COD</button>
+                                <Stripe amount={total} email={"irsupernano@gmail.com"}/>
                             </td>
                         </tr>
                     </tbody>
