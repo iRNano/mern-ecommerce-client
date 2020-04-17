@@ -9,8 +9,8 @@ import AddProduct from './components/forms/AddProduct'
 import Register from './components/forms/Register';
 import Login from './components/forms/Login';
 import jwt_decode from 'jwt-decode'
-
-
+import Transactions from './components/Transactions';
+import UserTransaction from './components/UserTransactions';
 
 const App = () => {
   const [products,setProducts] = useState([])
@@ -31,13 +31,16 @@ const App = () => {
     if(token){
       let decoded = jwt_decode(token)
       let now = new Date()
-      if(decoded.exp <= now.getTime()){
-        localStorage.clear()
-      }
+
+        if(decoded.exp >= now.getTime()){
+          localStorage.clear()
+        }
+      
+      
     }
     setUser(JSON.parse(localStorage.getItem("user")))
     setToken(localStorage.getItem("token"))
-  }, [])
+  }, [token])
   
   return(    
       <Router>
@@ -54,10 +57,20 @@ const App = () => {
               <Cart /> : <Auth />  
             }
           </Route>
+          <Route path="/transactions/:userId">
+            {user && token && user.isAdmin === false ?
+              <UserTransaction /> : <Auth />
+            }
+          </Route>
           <Route path="/add-product">
             {user && token && user.isAdmin ? 
               <AddProduct /> : <Auth />
             } 
+          </Route>
+          <Route path="/transactions">
+            {user && token && user.isAdmin ? 
+              <Transactions /> : <Auth />
+            }
           </Route>
           <Route path="/products/:id">
             <Product user={user} token={token}/>

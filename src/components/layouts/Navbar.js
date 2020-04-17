@@ -21,15 +21,26 @@ const TopNav = ({user, token, logout}) => {
         authLinks=(
             <Fragment>
                 {user && user.isAdmin === false ? 
-                    <NavItem>
-                        <Link to="/cart" className="nav-link">Cart</Link>
-                    </NavItem>: null
+                    <Fragment>
+                        <NavItem>
+                            <Link to="/cart" className="nav-link">Cart</Link>
+                        </NavItem>
+                        <NavItem>
+                            <Link to={"/transactions/"+user._id} className="nav-link">Transactions</Link>
+                        </NavItem>
+                    </Fragment>
+                    : null                    
                 }
                 
                 {user.isAdmin? 
-                    <NavItem>
-                        <Link to="/add-product" className="nav-link">Add Product</Link>
-                    </NavItem> :
+                    <Fragment>
+                        <NavItem>
+                            <Link to="/add-product" className="nav-link">Add Product</Link>
+                        </NavItem> 
+                        <NavItem>
+                            <Link to="/transactions" className="nav-link">Transactions</Link>
+                        </NavItem>
+                    </Fragment> :
                     null
                 }
                 

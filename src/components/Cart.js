@@ -11,7 +11,7 @@ const Cart = () => {
         setCartItems(JSON.parse(localStorage.getItem('cartItems')))
     }, [])
 
-    if(cartItems.length){
+    if(cartItems.length>0){
         let subTotals = cartItems.map(item => parseInt(item.price)* parseInt(item.quantity))
 
         total = subTotals.reduce((accumulator, subPerItem) => {
@@ -128,7 +128,7 @@ const Cart = () => {
                             <td colSpan="5" className="text-center">
                                 <button className="btn btn-danger mr-3" onClick={()=> emptyCart()}>Empty Cart</button>
                                 <button className="btn btn-success mr-3" onClick={checkout}>Checkout COD</button>
-                                <Stripe amount={total} email={"irsupernano@gmail.com"}/>
+                                <Stripe amount={total*100} cartItems={cartItems} setCartItems={setCartItems}/>
                             </td>
                         </tr>
                     </tbody>
